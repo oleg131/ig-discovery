@@ -5,7 +5,7 @@ import random
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
+from instagram_private_api.errors import ClientLoginRequiredError
 
 USERNAME = os.environ['USERNAME']
 PASSWORD = os.environ['PASSWORD']
@@ -61,11 +61,14 @@ def info(username):
 
 
 @app.get("/api/suggested/{user_id}")
-def read_item(user_id):
+def suggested(user_id):
     print('Getting suggestions for id {}'.format(user_id))
 
     try:
         res = client.discover_chaining(user_id)
+    except ClientLoginRequiredError:
+        print(client)
+        print(client.settings, USERNAME, PASSWORD)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
