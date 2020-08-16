@@ -8,23 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 USERNAME = os.environ['USERNAME']
 PASSWORD = os.environ['PASSWORD']
+RATE_LIMIT = 0.1
 
 app = FastAPI()
-
-origins = [
-    "http://localhost",
-    "http://localhost:5000",
-    "http://localhost:3000",
-]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-RATE_LIMIT = 0.1
 
 
 class Client(api.Client):
@@ -52,11 +38,13 @@ class Client(api.Client):
         return super().discover_chaining(*args, **kwargs)
 
 
-client = Client(username, password)
+client = Client(USERNAME, PASSWORD)
 
 
 @app.get("/info/{username}")
 def info(username):
+    print('Getting info for username {}'.format(username))
+
     user = client.username_info(username)
 
     return user['user']
@@ -64,6 +52,8 @@ def info(username):
 
 @app.get("/suggested/{user_id}")
 def read_item(user_id):
+    print('Getting suggestions for id {}'.format(user_id))
+
     try:
         res = client.discover_chaining(user_id)
     except Exception as e:
