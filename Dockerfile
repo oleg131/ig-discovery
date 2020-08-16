@@ -5,7 +5,7 @@ ENV PATH /app/node_modules/.bin:$PATH
 COPY package.json /app/package.json
 RUN npm install --ignore-scripts
 COPY . /app
-RUN NODE_ENV=development npm run build
+RUN npm run build
 
 # production
 FROM abiosoft/caddy:1.0.1
