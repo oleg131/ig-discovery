@@ -1,0 +1,11 @@
+:2015
+
+root /build
+gzip
+
+# API
+rewrite / {
+    if {path} not_match ^/api
+    to {path} /
+}
+proxy /api ig-discovery.backend:80
