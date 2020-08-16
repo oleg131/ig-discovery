@@ -41,7 +41,7 @@ class Client(api.Client):
 client = Client(USERNAME, PASSWORD)
 
 
-@app.get("/info/{username}")
+@app.get("/api/info/{username}")
 def info(username):
     print('Getting info for username {}'.format(username))
 
@@ -50,7 +50,7 @@ def info(username):
     return user['user']
 
 
-@app.get("/suggested/{user_id}")
+@app.get("/api/suggested/{user_id}")
 def read_item(user_id):
     print('Getting suggestions for id {}'.format(user_id))
 
