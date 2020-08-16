@@ -41,7 +41,7 @@ function App() {
   function getInfo(username) {
     setStatus('Loading...')
 
-    fetch(`http://localhost:8000/info/${username}`)
+    fetch(`/api/info/${username}`)
       .then(handle)
       .then((data) => {
 
@@ -64,7 +64,7 @@ function App() {
 
     setStatus('Loading...')
 
-    fetch(`http://localhost:8000/suggested/${user_id}`)
+    fetch(`/api/suggested/${user_id}`)
       .then(handle)
       .then((children) => {
         newStore.push(children.pk);
