@@ -70,3 +70,7 @@ a {
   top: 0px;
   z-index: 2;
 }
+
+.member {
+  min-width: 100px;
+}

@@ -1,5 +1,4 @@
-import React, { Component } from 'react';
-import styled from 'styled-components';
+import React from 'react';
 import Member from './member';
 
 import { chunk } from 'lodash'
@@ -8,12 +7,7 @@ import { DUPLICATE_KEY } from '../App'
 
 const CHUNK_SIZE = 8
 
-const StyledWrapper = styled.div`
-    display: flex;
-    justify-content: center;
-    // margin-top: ${props => `${props.level * 30}px`};
-    // overflow: auto;
-`
+
 
 export default function FamilyTree({ members, update, level = 0 }) {
 
