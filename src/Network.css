@@ -1,0 +1,28 @@
+.link--source, /*two hyphens [emotionless]*/
+.link--target {
+  stroke-width: 2px;
+  opacity: 1;
+}
+
+.link--source {
+  stroke: red;
+}
+
+.link--target {
+  stroke: green;
+}
+
+.node--source {
+  fill: green;
+}
+
+.node--target {
+  fill: red;
+}
+
+path {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1px;
+  opacity: 0.5;
+}
