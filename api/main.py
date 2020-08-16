@@ -1,6 +1,7 @@
 import instagram_private_api as api
 import time
 import os
+import random
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +14,15 @@ RATE_LIMIT = 0.1
 app = FastAPI()
 
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex="http://localhost.*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 class Client(api.Client):
     rate_limit = RATE_LIMIT
     last_call = time.time()
@@ -21,8 +31,8 @@ class Client(api.Client):
         diff = time.time() - self.last_call
 
         if diff < self.rate_limit:
-            sleep = self.rate_limit - diff
-            print('Rate limit hit, waiting {} s'.format(sleep))
+            sleep = self.rate_limit
+            print('Rate limit hit {} s ago, waiting {} s'.format(diff, sleep))
             time.sleep(sleep)
 
         self.last_call = time.time()

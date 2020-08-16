@@ -3,26 +3,28 @@ import React from 'react';
 
 
 const Member = ({ member, update, setShowChildren }) => {
+  const ref = React.useRef();
+
   if (!Object.keys(member).length) {
-    return <div></div>
+    return <div></div>;
   }
 
   // const [name, avatar] = member
 
-  const name = member.username
-  const avatar = member.profile_pic_url
+  const name = member.username;
+  const avatar = member.profile_pic_url;
 
   function onClick() {
     if (!member.children) {
-      update(member.pk, member.path)
+      update(member.pk, member.path, { ref: ref });
     } else {
-      setShowChildren(prevState => !prevState)
+      setShowChildren(prevState => !prevState);
     }
 
   }
 
   return (
-    <div className="member">
+    <div className="member" ref={ref}>
       <figure className="figure">
         <figure className="avatar avatar-xl pointer"><img src={avatar} alt="" onClick={onClick} /></figure>
         <figcaption className="figure-caption text-center">
@@ -30,7 +32,7 @@ const Member = ({ member, update, setShowChildren }) => {
         </figcaption>
       </figure>
     </div>
-  )
-}
+  );
+};
 
 export default Member;

@@ -7,15 +7,15 @@ import FamilyTree from './components/familyTree';
 
 import { cloneDeep } from 'lodash'
 
-import 'spectre.css/dist/spectre.min.css';
-
 export const DUPLICATE_KEY = 'duplicate'
 
+const HOST = process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : ''
+const INIT_USER = process.env.NODE_ENV === 'development' ? 'ohmyseon' : ''
 
 function App() {
-  const [username, setUsername] = React.useState('ohmyseon')
+  const [username, setUsername] = React.useState(INIT_USER)
 
-  const [user, setUser] = React.useState({})
+  const [user, setUser] = React.useState()
 
   const [store, setStore] = React.useState([]);
 
@@ -41,10 +41,9 @@ function App() {
   function getInfo(username) {
     setStatus('Loading...')
 
-    fetch(`/api/info/${username}`)
+    fetch(`${HOST}/api/info/${username}`)
       .then(handle)
       .then((data) => {
-
         setStore(store => store.concat([data.pk]))
 
         return data
@@ -54,23 +53,24 @@ function App() {
 
         setUsers(users => users.concat([data]))
 
-        getChildren(data.pk, [], [])
+        getChildren(data.pk, [], { oldStore: [] })
       })
-      .catch(console.log)
+      .catch(e => setStatus(String(e)))
   }
 
-  function getChildren(user_id, path, oldStore) {
-    const newStore = []
+  function getChildren(user_id, path, { oldStore, ref }) {
+    let newStore
 
     setStatus('Loading...')
 
-    fetch(`/api/suggested/${user_id}`)
+    fetch(`${HOST}/api/suggested/${user_id}`)
       .then(handle)
       .then((children) => {
-        newStore.push(children.pk);
-
         if (!oldStore) {
           oldStore = store
+          newStore = []
+        } else {
+          newStore = [user_id]
         }
 
         const newUsers = []
@@ -79,6 +79,8 @@ function App() {
 
         for (let index = 0; index < children.length; index++) {
           const element = children[index];
+
+          // console.log(oldStore)
 
           if (oldStore.includes(element.pk)) {
             element[DUPLICATE_KEY] = true
@@ -119,14 +121,16 @@ function App() {
 
           updateChildren(newTree, children, path)
 
-          console.log(newTree)
-
           return newTree
         })
 
         setStatus('')
+
+        if (ref) {
+          ref.current.scrollIntoView({ behavior: "smooth", block: "start", inline: "center" });
+        }
       })
-      .catch(console.log)
+      .catch(e => setStatus(String(e)))
   }
 
   function updateChildren(user, newChildren, path, position = 0) {
@@ -141,21 +145,38 @@ function App() {
     return user
   }
 
+
   return (
     <div className="App">
       <Status status={status} />
-      <div className="input-group search">
-        <input
-          type="text"
-          id="name"
-          name="name"
-          className="form-input"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <button type="button" className="btn btn-primary input-group-btn" onClick={handleClick}>
-          Submit
+
+      <div className="card">
+        <div className="card-header">
+          <div className="card-subtitle text-gray">Enter Instagram name to load suggestions</div>
+        </div>
+        <div className="card-body">
+          <div className="input-group search" id="search">
+            <input
+              type="text"
+              id="name"
+              name="name"
+              className="form-input"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <button type="button" className="btn btn-primary input-group-btn" onClick={handleClick}>
+              Submit
         </button>
+          </div>
+        </div>
+        {user ?
+          <div className="card-footer">
+            Click on the avatar to load suggestions for that user.
+            New suggestions are automatically filtered against what is currently displayed, so that all
+            profiles on the screen are unique. Clicking on the avatar again will hide all of its children.
+           </div> : null
+        }
+
       </div>
 
       <div className="chart" id="tree">

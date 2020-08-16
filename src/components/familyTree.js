@@ -1,19 +1,25 @@
 import React from 'react';
 import Member from './member';
 
-import { chunk } from 'lodash'
+import { chunk } from 'lodash';
 
-import { DUPLICATE_KEY } from '../App'
+import { DUPLICATE_KEY } from '../App';
 
-const CHUNK_SIZE = 8
+const CHUNK_SIZE = 8;
 
 
 
 export default function FamilyTree({ members, update, level = 0 }) {
 
-  members = members.filter(m => !m[DUPLICATE_KEY])
+  // console.log(members);
 
-  const chunks = chunk(members, CHUNK_SIZE)
+  if (!members.every(Boolean)) {
+    return null;
+  }
+
+  members = members.filter(m => !m[DUPLICATE_KEY]);
+
+  const chunks = chunk(members, CHUNK_SIZE);
 
   return (
     // <StyledWrapper level={level}>
@@ -33,11 +39,11 @@ export default function FamilyTree({ members, update, level = 0 }) {
 
     </div>
     // </StyledWrapper>
-  )
+  );
 }
 
 function MemberTree({ member, update }) {
-  const [showChildren, setShowChildren] = React.useState(true)
+  const [showChildren, setShowChildren] = React.useState(true);
 
   function hasChildren(member) {
     return member.children && member.children.length && showChildren;
@@ -51,5 +57,5 @@ function MemberTree({ member, update }) {
       {/* </div> */}
 
     </div>
-  )
+  );
 }
