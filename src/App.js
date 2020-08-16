@@ -23,10 +23,9 @@ function App() {
 
   const [users, setUsers] = React.useState([])
 
-  function handleClick() {
-
+  function submit(e) {
+    e.preventDefault()
     getInfo(username)
-
   }
 
   function handle(res) {
@@ -155,19 +154,22 @@ function App() {
           <div className="card-subtitle text-gray">Enter Instagram name to load suggestions</div>
         </div>
         <div className="card-body">
-          <div className="input-group search" id="search">
-            <input
-              type="text"
-              id="name"
-              name="name"
-              className="form-input"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <button type="button" className="btn btn-primary input-group-btn" onClick={handleClick}>
-              Submit
-        </button>
-          </div>
+          <form onSubmit={submit}>
+            <div className="input-group search" id="search">
+              <input
+                type="text"
+                id="name"
+                name="name"
+                className="form-input"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required={true}
+              />
+              <button type="submit" className="btn btn-primary input-group-btn">
+                Submit
+             </button>
+            </div>
+          </form>
         </div>
         {user ?
           <div className="card-footer">
