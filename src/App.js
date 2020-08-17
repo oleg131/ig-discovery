@@ -30,7 +30,6 @@ function App() {
   }
 
   function handle(res) {
-    console.log(res);
     if (!res.ok) {
       res.json().then(r => { setStatus(r.detail); });
       throw new Error('Erroneous api response');
