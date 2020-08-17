@@ -11,17 +11,6 @@ USERNAME = os.environ['USERNAME']
 PASSWORD = os.environ['PASSWORD']
 RATE_LIMIT = 0.1
 
-app = FastAPI()
-
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origin_regex="http://localhost.*",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 
 class Client(api.Client):
     rate_limit = RATE_LIMIT
@@ -40,21 +29,29 @@ class Client(api.Client):
     def username_info(self, *args, **kwargs):
         self.check_rate()
 
-        return super().username_info(*args, **kwargs)
+        return super(Client, self).username_info(*args, **kwargs)
 
     def discover_chaining(self, *args, **kwargs):
         self.check_rate()
 
-        return super().discover_chaining(*args, **kwargs)
+        return super(Client, self).discover_chaining(*args, **kwargs)
 
 
 client = Client(USERNAME, PASSWORD)
 
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex="http://localhost.*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/api/info/{username}")
 def info(username):
-    print('Getting info for username {}'.format(username))
-
     user = client.username_info(username)
 
     return user['user']
@@ -62,13 +59,13 @@ def info(username):
 
 @app.get("/api/suggested/{user_id}")
 def suggested(user_id):
-    print('Getting suggestions for id {}'.format(user_id))
-
     try:
         res = client.discover_chaining(user_id)
-    except ClientLoginRequiredError:
+    except ClientLoginRequiredError as e:
         print(client)
         print(client.settings, USERNAME, PASSWORD)
+
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
