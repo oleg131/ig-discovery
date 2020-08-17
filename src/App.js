@@ -3,7 +3,7 @@ import './App.css';
 
 import FamilyTree from './components/familyTree';
 
-// import Network from './Network'
+// import Network from './Network';
 
 import { cloneDeep } from 'lodash';
 
@@ -21,7 +21,8 @@ function App() {
 
   const [status, setStatus] = React.useState('');
 
-  const [users, setUsers] = React.useState([]);
+  const [userDataNodes, setUserDataNodes] = React.useState([]);
+  const [userDataLinks, setUserDataLinks] = React.useState([]);
 
   function submit(e) {
     e.preventDefault();
@@ -50,7 +51,7 @@ function App() {
       .then((data) => {
         setUser(data);
 
-        setUsers(users => users.concat([data]));
+        setUserDataNodes(nodes => nodes.concat([data]));
 
         getChildren(data.pk, [], { oldStore: [] });
       })
@@ -73,6 +74,7 @@ function App() {
         }
 
         const newUsers = [];
+        const newLinks = [];
 
         // children = children.filter((i) => !oldStore.includes(i.pk));
 
@@ -93,34 +95,42 @@ function App() {
             element.path = [index];
           }
 
-          if (users.findIndex(i => i.pk === element.pk) < 0) {
+          if (userDataNodes.findIndex(i => i.pk === element.pk) < 0) {
             newUsers.push(element);
+            newLinks.push({
+              source: user_id,
+              target: element.pk
+            });
           }
 
           newStore.push(element.pk);
         }
 
-        setUsers(oldUsers => {
-          const users = cloneDeep(oldUsers);
-          const ix = users.findIndex(i => i.pk === user_id);
-          users[ix].children = children.map(i => i.username);
-          return users.concat(newUsers);
-        });
+        // setUserData(oldUsers => {
+        //   const users = cloneDeep(oldUsers);
+        //   const ix = users.findIndex(i => i.pk === user_id);
+        //   users[ix].children = children.map(i => i.username);
+        //   return users.concat(newUsers);
+        // });
+
+
+        setUserDataNodes(nodes => nodes.concat(newUsers));
+        setUserDataLinks(links => links.concat(newLinks));
 
         setStore(oldStore.concat(newStore));
 
-        setUser(oldTree => {
-          let newTree;
+        setUser(oldUser => {
+          let newUser;
 
-          if (Object.keys(oldTree).length) {
-            newTree = cloneDeep(oldTree);
+          if (oldUser) {
+            newUser = cloneDeep(oldUser);
           } else {
-            newTree.children = children;
+            newUser.children = children;
           }
 
-          updateChildren(newTree, children, path);
+          updateChildren(newUser, children, path);
 
-          return newTree;
+          return newUser;
         });
 
         setStatus('');
@@ -154,26 +164,8 @@ function App() {
       <Status status={status} />
 
       <div className="card">
-        <div className="card-header">
-          <div className="card-subtitle text-gray">Enter Instagram name to load suggestions</div>
-        </div>
         <div className="card-body">
-          <form onSubmit={submit}>
-            <div className="input-group search" id="search">
-              <input
-                type="text"
-                id="name"
-                name="name"
-                className="form-input"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required={true}
-              />
-              <button type="submit" className="btn btn-primary input-group-btn">
-                Submit
-             </button>
-            </div>
-          </form>
+          <Form {...{ username, setUsername, submit }} />
         </div>
         {user ?
           <div className="card-footer">
@@ -189,8 +181,30 @@ function App() {
         <FamilyTree members={[user]} update={getChildren} />
       </div>
 
-      {/* <Network data={users} update={getChildren} /> */}
+      {/* <Network data={{ nodes: userDataNodes, links: userDataLinks }} update={getChildren} /> */}
     </div>
+  );
+}
+
+function Form({ username, setUsername, submit }) {
+  return (
+    <form onSubmit={submit}>
+      <div className="input-group search" id="search">
+        <input
+          type="text"
+          id="name"
+          name="name"
+          className="form-input"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required={true}
+          placeholder="Enter Instagram name to load suggestions"
+        />
+        <button type="submit" className="btn btn-primary input-group-btn">
+          Submit
+        </button>
+      </div>
+    </form>
   );
 }
 

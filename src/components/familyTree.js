@@ -5,13 +5,9 @@ import { chunk } from 'lodash';
 
 import { DUPLICATE_KEY } from '../App';
 
-const CHUNK_SIZE = 8;
-
-
+const ROW_SIZE = 8;
 
 export default function FamilyTree({ members, update, level = 0 }) {
-
-  // console.log(members);
 
   if (!members.every(Boolean)) {
     return null;
@@ -19,11 +15,9 @@ export default function FamilyTree({ members, update, level = 0 }) {
 
   members = members.filter(m => !m[DUPLICATE_KEY]);
 
-  const chunks = chunk(members, CHUNK_SIZE);
+  const chunks = chunk(members, ROW_SIZE);
 
   return (
-    // <StyledWrapper level={level}>
-
     <div className="container">
       {
         chunks.map((row, i) => (
@@ -38,7 +32,6 @@ export default function FamilyTree({ members, update, level = 0 }) {
       }
 
     </div>
-    // </StyledWrapper>
   );
 }
 
@@ -49,13 +42,15 @@ function MemberTree({ member, update }) {
     return member.children && member.children.length && showChildren;
   }
 
+  // Don't show top level member if there are no children (still loading)
+  if (!member.path && !hasChildren(member)) {
+    return null;
+  }
+
   return (
     <div className={"column" + (hasChildren(member) ? " panel" : "")}>
-      {/* <div className="column"> */}
       <Member member={member} update={update} setShowChildren={setShowChildren} />
       {hasChildren(member) && <FamilyTree members={member.children} update={update} />}
-      {/* </div> */}
-
     </div>
   );
 }

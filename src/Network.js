@@ -1,239 +1,165 @@
 import React, { useEffect } from 'react';
 import * as d3 from "d3";
 
-import './Network.css'
-import { cloneDeep } from 'lodash'
+import './Network.css';
 
 
+const height = 600;
+const width = 600;
+const scale = d3.scaleOrdinal(d3.schemeCategory10);
+const color = d => scale(d.group);
+const avatar = d => d.profile_pic_url;
+const drag = simulation => {
 
-var node,
-  link;
-
-
-
-const chart = function (data, onClick, size) {
-  var diameter = Math.min(size.width, size.height),
-    padding = 120,
-    radius = diameter / 2 - padding;
-
-  var stratify = d3.stratify()
-    .id(d => d.username);
-
-  var cluster = d3.cluster()
-    .size([Math.PI * 2, radius]);
-
-  var line = d3.line()
-    .x(d => getX(d))
-    .y(d => getY(d))
-    // .curve(d3.curveBasis); //bug: d3.curveBasis doesn't have beta
-    .curve(d3.curveBundle);
-
-  data = cloneDeep(data)
-
-  // console.log(data)
-
-  data = addParentNode(data);
-  var root = stratify(data);
-  cluster(root);
-  var leaves = root.leaves();
-
-  var svg = d3.create('svg')
-    .attr("width", diameter)
-    .attr("height", diameter);
-
-  var g = svg.append("g")
-    .attr("transform", "translate(" + [diameter / 2, diameter / 2] + ")");
-
-  // console.log(leaves)
-
-  node = g.append("g")
-    .selectAll("text")
-    .data(leaves)
-    .enter()
-
-    .append("image")
-    .attr("xlink:href", d => d.data.profile_pic_url)
-    .attr('width', 20)
-    .attr('height', 20)
-
-
-    // .append("text")
-    // .text(d => d.data.username)
-
-    .attr("transform", d => "translate(" + [getX(d), getY(d)] + ") " //if not translate, rotate will behave strange
-      // + "rotate(" + (d.x * 180 / Math.PI - (isLeft(d) ? 180 : 0)) + ")"
-    )
-    // .attr("text-anchor", d => isLeft(d) ? "end" : "start")
-    // .attr("dx", d => isLeft(d) ? "-0.7em" : "0.7em")
-    // .attr("dy", "0.3em")
-
-    .on("mouseover", mouseovered)
-    .on("mouseout", mouseouted)
-    .on("click", function (d) {
-      onClick(d.data.pk, d.data.path)
-    })
-
-
-  // svg.append("g")
-  //   .attr("class", "photo")
-  //   .selectAll("text")
-  //   .data(leaves)
-  //   .enter()
-  //   .append("image")
-  //   .attr("xlink:href", d => d.data.profile_pic_url)
-  //   .attr('width', 20)
-  //   .attr('height', 20)
-  //   .attr("transform", d => console.log(d.x, d.y) || `
-  //     translate(${getX(d)},${getY(d)})
-  //   `)
-  //   .on("click", function (d) {
-  //     onClick(d.data.pk, d.data.path)
-  //   })
-
-  link = g.append("g")
-    .selectAll("path")
-    .data(getPaths(leaves))
-    .enter().append("path")
-    .each(d => { d.source = d[0]; d.target = d[d.length - 1]; })
-    .attr("d", line);
-
-  return svg.node()
-}
-
-function addParentNode(data) {
-  // var map = {};
-  // data.forEach(node => { map[node.username] = node; });
-
-  // var node,
-  //   newNode,
-  //   index,
-  //   id;
-  // for (var i = 0; i < data.length; i++) {
-  //   node = data[i];
-  //   // index = node.name.lastIndexOf(".");
-  //   // id = node.name.substring(0, index);
-  //   node.parentId = 'z';
-  //   node.shortName = node.username;
-  //   if (!map[id]) {
-  //     newNode = { name: id };
-  //     // data.push(newNode);
-  //     map[id] = newNode;
-  //   }
-  // }
-  // data.pop(); //remove the one with name "", since it causes multi-root error.
-
-  for (var i = 0; i < data.length; i++) {
-    node = data[i];
-    node.parentId = 'z';
+  function dragstarted(d) {
+    if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
   }
 
-  if (data.findIndex(i => i.username === 'z') < 0) {
-    data.push({
-      username: "z",
-      parentId: "",
-      shortName: "z"
-    })
+  function dragged(d) {
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
   }
 
+  function dragended(d) {
+    if (!d3.event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
 
-  // console.log(data[data.length - 2])
+  return d3.drag()
+    .on("start", dragstarted)
+    .on("drag", dragged)
+    .on("end", dragended);
+};
 
-  return data
+function getXY(d) {
+  console.log(d);
+  // return [d.y * Math.cos(d.x), d.y * Math.sin(d.x)];
+  return [width / 2 + d.x, height / 2 + d.y];
 }
 
-function getPaths(leaves) {
-  var map = {};
-  leaves.forEach(leaf => { map[leaf.data.username] = leaf; });
+const chart = (data) => {
 
-  var paths = [];
-  leaves.forEach(leaf => {
-    if (leaf.data.children) {
-      // console.log('children', leaf.data.children)
-      leaf.data.children.forEach(name => {
-        // console.log(name)
-        paths.push(leaf.path(map[name]));
-      });
-    }
+  // data = data0;
+
+  var width = 960,
+    height = 500;
+
+  console.log(data);
+
+  const svg = d3.create("svg")
+    .attr("viewBox", "0 0 " + width + " " + height);
+  svg.classed('hidden', true);
+
+  var link = svg.selectAll(".link")
+    .data(data.links)
+    .enter().append("line")
+    .attr("class", "link");
+
+  var node = svg.selectAll(".node")
+    .data(data.nodes)
+    .enter().append("g")
+    .attr("class", "node");
+  // .call(force.drag);
+
+
+  // const links = data.links.map(d => Object.create(d));
+  // const nodes = data.nodes.map(d => Object.create(d));
+
+  const simulation = d3.forceSimulation(data.nodes)
+    .force("link", d3.forceLink(data.links).id(d => d.pk))
+    .force("charge", d3.forceManyBody())
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .on('end', function () {
+      svg.classed('hidden', false);
+    });
+
+  // var force = d3.force()
+  //   .gravity(0.05)
+  //   .distance(100)
+  //   .charge(-100)
+  //   .size([width, height]);
+
+  // const svg = d3.create("svg")
+  //   .attr("viewBox", [0, 0, width, height]);
+
+  // const link = svg.append("g")
+  //   .attr("stroke", "#999")
+  //   .attr("stroke-opacity", 0.6)
+  //   .selectAll("line")
+  //   .data(links)
+  //   .join("line")
+  //   .attr("stroke-width", d => Math.sqrt(1));
+
+  // const node = svg.append("g")
+  //   .attr("stroke", "#fff")
+  //   .attr("stroke-width", 1.5)
+  //   .selectAll("circle")
+  //   .data(nodes)
+
+  //   // .enter()
+  //   .enter().append("g")
+  //   .attr("class", "node")
+  //   // .call(force.drag);
+
+
+  //   // .join("circle")
+  //   // .attr("r", 5)
+  //   // .attr("fill", color)
+
+
+  node.append("image")
+    .attr("xlink:href", avatar)
+    .attr("x", -8)
+    .attr("y", -8)
+    .attr("width", 16)
+    .attr("height", 16)
+    .call(drag(simulation));
+
+  // // node.append("image")
+  // //   .attr("xlink:href", avatar)
+  // //   .attr('width', 20)
+  // //   .attr('height', 20)
+  // //   .attr('x', -8)
+  // //   .attr('y', -8);
+  // // .attr("transform", d => "translate(" + getXY(d) + ") ")
+
+
+
+  // node.append("title")
+  //   .text(d => d.pk);
+
+  simulation.on("tick", () => {
+    link.attr("x1", function (d) { return d.source.x; })
+      .attr("y1", function (d) { return d.source.y; })
+      .attr("x2", function (d) { return d.target.x; })
+      .attr("y2", function (d) { return d.target.y; });
+
+    node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
   });
-  return paths;
-}
 
-function mouseovered(d) {
-  node.each(n => { n.target = n.source = false; });
-  link.classed("link--target", l => { if (l.target === d) return l.source.source = true; })
-    .classed("link--source", l => { if (l.source === d) return l.target.target = true; })
-    .filter(l => l.target === d || l.source === d)
-    .raise();
-  node.classed("node--source", n => n.source)
-    .classed("node--target", n => n.target)
-}
+  // // invalidation.then(() => simulation.stop());
 
-function mouseouted(d) {
-  link.classed("link--source", false)
-    .classed("link--target", false);
-  node.classed("node--source", false)
-    .classed("node--target", false);
-}
-
-function getX(d) {
-  return d.y * Math.cos(d.x);
-}
-
-function getY(d) {
-  return d.y * Math.sin(d.x);
-}
-
-function isLeft(d) {
-  return d.x > Math.PI * 0.5 && d.x < Math.PI * 1.5;
-}
+  return svg.node();
+};
 
 export default function Network({ data, update }) {
   const svg = React.useRef(null);
-  const size = useWindowSize();
+  // const size = useWindowSize();
 
   useEffect(() => {
-    if (svg.current && data.length) {
-      const result = chart(data, update, size)
+    if (svg.current) {
+      const result = chart(data, update);
 
       if (!svg.current.childElementCount) {
-        svg.current.appendChild(result)
+        svg.current.appendChild(result);
       } else {
-        svg.current.replaceChild(result, svg.current.children[0])
+        svg.current.replaceChild(result, svg.current.children[0]);
       }
     }
-  }, [data, size, update])
+  }, [data, update]);
 
-  return <div><div ref={svg}></div></div>
-}
-
-// Hook
-function useWindowSize() {
-  // Initialize state with undefined width/height so server and client renders match
-  // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
-  const [windowSize, setWindowSize] = React.useState({
-    width: undefined,
-    height: undefined,
-  });
-
-  useEffect(() => {
-    // Handler to call on window resize
-    function handleResize() {
-      // Set window width/height to state
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    }
-
-    // Add event listener
-    window.addEventListener("resize", handleResize);
-
-    // Call handler right away so state gets updated with initial window size
-    handleResize();
-
-    // Remove event listener on cleanup
-    return () => window.removeEventListener("resize", handleResize);
-  }, []); // Empty array ensures that effect is only run on mount
-
-  return windowSize;
+  return <div><div ref={svg}></div></div>;
 }
