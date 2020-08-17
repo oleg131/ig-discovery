@@ -54,7 +54,13 @@ app.add_middleware(
 def info(username):
     try:
         user = client.username_info(username)
+    except ClientLoginRequiredError as e:
+        client.login()
+        user = client.username_info(username)
     except Exception as e:
+        print('Error occured while getting info')
+        print(client, client.settings, USERNAME)
+
         raise HTTPException(status_code=500, detail=str(e))
 
     return user['user']
@@ -65,11 +71,12 @@ def suggested(user_id):
     try:
         res = client.discover_chaining(user_id)
     except ClientLoginRequiredError as e:
-        print(client)
-        print(client.settings, USERNAME, PASSWORD)
-
-        raise HTTPException(status_code=500, detail=str(e))
+        client.login()
+        res = client.discover_chaining(user_id)
     except Exception as e:
+        print('Error occured while getting suggestions')
+        print(client, client.settings, USERNAME)
+
         raise HTTPException(status_code=500, detail=str(e))
 
     return res['users']
