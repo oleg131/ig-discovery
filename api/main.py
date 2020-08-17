@@ -52,7 +52,10 @@ app.add_middleware(
 
 @app.get("/api/info/{username}")
 def info(username):
-    user = client.username_info(username)
+    try:
+        user = client.username_info(username)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     return user['user']
 

@@ -30,8 +30,10 @@ function App() {
   }
 
   function handle(res) {
+    console.log(res);
     if (!res.ok) {
-      res.text().then(text => { setStatus(text); });
+      res.json().then(r => { setStatus(r.detail); });
+      throw new Error('Erroneous api response');
     }
     else {
       return res.json();
@@ -167,7 +169,7 @@ function App() {
         <div className="card-body">
           <Form {...{ username, setUsername, submit }} />
         </div>
-        {user ?
+        {user && user.children ?
           <div className="card-footer">
             Click on the avatar to load suggestions for that user.
             New suggestions are automatically filtered against what is currently displayed, so that all
